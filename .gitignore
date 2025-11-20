@@ -1,3 +1,3 @@
-./p1/.vagrant/
-./p1/k3s.yaml
-./p1/k3s_token.txt
+./*/.vagrant/
+./*/k3s.yaml
+./*/k3s_token.txt
