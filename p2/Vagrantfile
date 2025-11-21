@@ -1,0 +1,34 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+  # Shared SSH key for password-less access
+  config.ssh.insert_key = true
+
+  ###############################
+  #     SERVER (Controller)     #
+  ###############################
+  config.vm.define "alycgautS" do |srv|
+    srv.vm.hostname = "alycgautS"
+    srv.vm.network "private_network", ip: "192.168.56.110"
+
+    srv.vm.provider "virtualbox" do |vb|
+      vb.name = "alycgautS"
+      vb.cpus = 1
+      vb.memory = 1024
+    end
+
+    # Install K3s server
+    srv.vm.provision "shell", inline: <<-SHELL
+      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip 192.168.56.110" sh -
+      sudo snap install kubectl --classic
+
+    sleep 30
+
+    sudo k3s kubectl apply -f /vagrant/app1
+    sudo k3s kubectl apply -f /vagrant/app2
+    sudo k3s kubectl apply -f /vagrant/app3
+    sudo k3s kubectl apply -f /vagrant/ingress.yaml
+
+    SHELL
+  end
+end
