@@ -1,3 +1,8 @@
 **/.vagrant/
 **/k3s.yaml
 **/k3s_token.txt
+
+### Fake env
+p3/Vagrantfile
+p3/Run_fake_env
+p3/IOT_alycgaut
