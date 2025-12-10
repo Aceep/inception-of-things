@@ -1,0 +1,68 @@
+# =============================================================================
+# Argo CD Application - Watches GitHub repo and deploys to 'dev' namespace
+# =============================================================================
+# This application configuration tells Argo CD to:
+#   1. Watch the specified GitHub repository
+#   2. Automatically sync changes to the 'dev' namespace
+#   3. Self-heal if manual changes are made to the cluster
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wil-playground
+  namespace: argocd
+  # Finalizer ensures app is properly cleaned up when deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # The project the application belongs to (default is fine for simple setups)
+  project: default
+  
+  # Source repository configuration
+  source:
+    # ==========================================================================
+    # IMPORTANT: Replace with YOUR GitHub repository URL
+    # This should be the repository where your Kubernetes manifests are stored
+    # ==========================================================================
+    repoURL: https://github.com/Aceep/inception-of-things.git
+    
+    # Branch to track (can also be a tag like 'v1' or 'v2')
+    targetRevision: main
+    
+    # Path within the repository to the Kubernetes manifests
+    path: p3/confs/dev
+  
+  # Destination cluster and namespace
+  destination:
+    # The cluster where to deploy (https://kubernetes.default.svc = current cluster)
+    server: https://kubernetes.default.svc
+    
+    # The namespace where the app will be deployed
+    namespace: dev
+  
+  # Sync policy configuration
+  syncPolicy:
+    # Automated sync - Argo CD will automatically apply changes
+    automated:
+      # Automatically prune resources that are no longer in Git
+      prune: true
+      # Automatically sync when Argo CD detects changes
+      selfHeal: true
+      # Allow empty directories (useful for initial setup)
+      allowEmpty: false
+    
+    # Sync options
+    syncOptions:
+      # Create namespace if it doesn't exist
+      - CreateNamespace=true
+      # Apply out of sync only (more efficient)
+      - ApplyOutOfSyncOnly=true
+    
+    # Retry policy for failed syncs
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
