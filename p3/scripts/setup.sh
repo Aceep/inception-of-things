@@ -125,12 +125,12 @@ create_cluster() {
     log_info "Creating k3d cluster '$CLUSTER_NAME'..."
     
     # Create cluster with port mappings
-    # - Port 8080 for HTTP ingress
+    # - Port 8081 for HTTP ingress
     # - Port 8443 for HTTPS ingress
     k3d cluster create "$CLUSTER_NAME" \
         --servers 1 \
         --agents 2 \
-        --port "8080:80@loadbalancer" \
+        --port "8081:80@loadbalancer" \
         --port "8443:443@loadbalancer" \
         --wait
     
@@ -258,8 +258,8 @@ show_access_info() {
     
     echo "Argo CD UI:"
     echo "  - Port-forward method (recommended):"
-    echo "    kubectl port-forward svc/argocd-server -n $ARGOCD_NAMESPACE 8080:443"
-    echo "    Then access: https://localhost:8080"
+    echo "    kubectl port-forward svc/argocd-server -n $ARGOCD_NAMESPACE 8081:443"
+    echo "    Then access: https://localhost:8081"
     echo ""
     echo "  - NodePort method:"
     echo "    Access: https://localhost:$ARGOCD_PORT"

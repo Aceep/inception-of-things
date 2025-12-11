@@ -64,8 +64,8 @@ newgrp docker
 ./scripts/setup.sh
 
 # 5. Access Argo CD UI
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
-# Then open: https://localhost:8080
+kubectl port-forward svc/argocd-server -n argocd 1:443 &
+# Then open: https://localhost:8081
 ```
 
 ## 📖 Detailed Setup
@@ -105,10 +105,10 @@ After setup, you can access the Argo CD UI:
 
 ```bash
 # Start port-forward in background
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+kubectl port-forward svc/argocd-server -n argocd 8081:443 &
 
 # Open in browser
-echo "Open: https://localhost:8080"
+echo "Open: https://localhost:8081"
 ```
 
 **Credentials:**
@@ -127,7 +127,7 @@ echo "Open: https://localhost:8080"
 kubectl get applications -n argocd
 
 # Using argocd CLI
-argocd login localhost:8080 --username admin --password <password> --insecure
+argocd login localhost:8081 --username admin --password <password> --insecure
 argocd app list
 ```
 
@@ -143,7 +143,7 @@ kubectl get all -n dev
 
 ### View Application in Web UI
 
-1. Open https://localhost:8080
+1. Open https://localhost:8081
 2. Login with admin credentials
 3. Click on "wil-playground" application
 4. View deployment status, health, and history
@@ -244,7 +244,7 @@ NODEPORT=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.spec.ports[?(@
 echo "Try: https://localhost:$NODEPORT"
 
 # Or use port-forward
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+kubectl port-forward svc/argocd-server -n argocd 8081:443
 ```
 
 ### Check Cluster Status
