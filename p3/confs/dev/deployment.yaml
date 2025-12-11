@@ -19,7 +19,7 @@ spec:
       - name: wil-playground
         # Using Wil's pre-made application from Dockerhub
         # v1 version - can be changed to v2 for second version
-        image: wil42/playground:v1
+        image: wil42/playground:v2
         ports:
         - containerPort: 8888
         env:
