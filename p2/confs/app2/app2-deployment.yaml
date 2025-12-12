@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-two-html
+data:
+  server.py: |
+    #!/usr/bin/env python3
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    import os
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            pod_name = os.getenv('POD_NAME', 'unknown')
+            node_name = os.getenv('NODE_NAME', 'unknown')
+            
+            html = f'''<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Hello Kubernetes!</title>
+        <link rel="stylesheet" type="text/css" href="/css/main.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:300">
+      </head>
+      <body>
+        <div class="main">
+          <img src="/images/kubernetes.png"/>
+          <div class="content">
+            <div id="message">Hello from app2.</div>
+            <div id="info">
+              <table>
+                <tr><th>pod:</th><td>{pod_name}</td></tr>
+                <tr><th>node:</th><td>{node_name}</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>'''
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(html.encode())
+
+    if __name__ == '__main__':
+        server = HTTPServer(('0.0.0.0', 8080), Handler)
+        print('Server running on port 8080')
+        server.serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-two
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: app-two
+  template:
+    metadata:
+      labels:
+        tier: app-two
+    spec:
+      containers:
+      - name: python-server
+        image: python:3.11-alpine
+        command: ["python3", "/app/server.py"]
+        ports:
+        - containerPort: 8080
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: script
+          mountPath: /app
+      volumes:
+      - name: script
+        configMap:
+          name: app-two-html
+          defaultMode: 0755
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-two
+spec:
+  selector:
+    tier: app-two
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-two-ingress
+spec:
+  rules:
+  - host: app2.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-two
+            port:
+              number: 80

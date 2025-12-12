@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-three-html
+data:
+  server.py: |
+    #!/usr/bin/env python3
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    import os
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            pod_name = os.getenv('POD_NAME', 'unknown')
+            node_name = os.getenv('NODE_NAME', 'unknown')
+            
+            html = f'''<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Hello Kubernetes!</title>
+        <link rel="stylesheet" type="text/css" href="/css/main.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:300">
+      </head>
+      <body>
+        <div class="main">
+          <img src="/images/kubernetes.png"/>
+          <div class="content">
+            <div id="message">Hello from app3.</div>
+            <div id="info">
+              <table>
+                <tr><th>pod:</th><td>app-three</td></tr>
+                <tr><th>node:</th><td>Linux-node-3</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-three
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: app-three
+  template:
+    metadata:
+      labels:
+        tier: app-three
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html
+        configMap:
+          name: app-three-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-three
+spec:
+  selector:
+    tier: app-three
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-three-ingress
+spec:
+  rules:
+  - host: app3.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-three
+            port:
+              number: 80
