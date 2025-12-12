@@ -26,8 +26,8 @@ spec:
             name: app-two
             port:
               number: 80
-  - host: app3.com
-    http:
+  # Catch-all rule for app3 (no host = matches any host)
+  - http:
       paths:
       - path: /
         pathType: Prefix
