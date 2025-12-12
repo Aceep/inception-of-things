@@ -24,17 +24,27 @@ data:
         <div class="main">
           <img src="/images/kubernetes.png"/>
           <div class="content">
-            <div id="message">Hello from app3.</div>
+            <div id="message">Hello from app1.</div>
             <div id="info">
               <table>
-                <tr><th>pod:</th><td>app-three</td></tr>
-                <tr><th>node:</th><td>Linux-node-3</td></tr>
+                <tr><th>pod:</th><td>{pod_name}</td></tr>
+                <tr><th>node:</th><td>{node_name}</td></tr>
               </table>
             </div>
           </div>
         </div>
       </body>
-    </html>
+    </html>'''
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(html.encode())
+
+    if __name__ == '__main__':
+        server = HTTPServer(('0.0.0.0', 8080), Handler)
+        print('Server running on port 8080')
+        server.serve_forever()
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -51,17 +61,28 @@ spec:
         tier: app-three
     spec:
       containers:
-      - name: nginx
-        image: nginx:alpine
+      - name: python-server
+        image: python:3.11-alpine
+        command: ["python3", "/app/server.py"]
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         volumeMounts:
-        - name: html
-          mountPath: /usr/share/nginx/html
+        - name: script
+          mountPath: /app
       volumes:
-      - name: html
+      - name: script
         configMap:
           name: app-three-html
+          defaultMode: 0755
 ---
 apiVersion: v1
 kind: Service
