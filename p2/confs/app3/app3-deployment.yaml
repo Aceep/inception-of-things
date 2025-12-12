@@ -24,7 +24,7 @@ data:
         <div class="main">
           <img src="/images/kubernetes.png"/>
           <div class="content">
-            <div id="message">Hello from app1.</div>
+            <div id="message">Hello from app3.</div>
             <div id="info">
               <table>
                 <tr><th>pod:</th><td>{pod_name}</td></tr>
